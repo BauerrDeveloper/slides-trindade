@@ -72,71 +72,103 @@
             letter-spacing: 2px;
         }
 
-        /* Apresentação do Arquivo */
-        .file-info-box {
+        /* Lista de Arquivos */
+        .file-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-height: 350px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        /* Scrollbar customizada */
+        .file-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .file-list::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.3);
+            border-radius: 10px;
+        }
+        .file-list::-webkit-scrollbar-thumb {
+            background: rgba(212, 175, 55, 0.3);
+            border-radius: 10px;
+        }
+        .file-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(212, 175, 55, 0.5);
+        }
+
+        .file-item {
             background: rgba(15, 23, 42, 0.6);
+            border: 1px dashed rgba(212, 175, 55, 0.3);
             border-radius: 12px;
             padding: 15px;
-            margin-bottom: 30px;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
             gap: 12px;
-            border: 1px dashed rgba(212, 175, 55, 0.3);
-            opacity: 0;
-            transform: translateY(10px);
-            transition: all 0.5s ease;
+            transition: all 0.3s ease;
+            text-align: left;
         }
 
-        .file-info-box.visible {
-            opacity: 1;
-            transform: translateY(0);
+        .file-item:hover {
+            border-color: rgba(212, 175, 55, 0.6);
+            background: rgba(15, 23, 42, 0.8);
+            transform: translateY(-2px);
         }
 
-        .file-info-box i {
+        .file-item-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-item-info i {
             color: #ff5252;
-            /* Cor vermelha para destacar que é um pptx/pdf */
             font-size: 24px;
+            flex-shrink: 0;
         }
 
-        #status {
-            color: var(--text-muted);
+        .file-name {
             font-size: 14px;
-            word-break: break-all;
-            margin: 0;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 500;
         }
 
-        /* Botão Dourado */
-        button {
-            width: 100%;
-            padding: 20px;
-            font-size: 18px;
-            font-weight: 700;
-            font-family: 'Outfit', sans-serif;
+        .download-btn {
             background: linear-gradient(135deg, var(--gold) 0%, #b8860b 100%);
             color: #111;
             border: none;
-            border-radius: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 20px -10px rgba(212, 175, 55, 0.5);
+            border-radius: 10px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            box-shadow: 0 5px 15px -5px rgba(212, 175, 55, 0.5);
         }
 
-        button:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 25px -10px rgba(212, 175, 55, 0.7);
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(212, 175, 55, 0.7);
             background: linear-gradient(135deg, var(--gold-hover) 0%, var(--gold) 100%);
         }
 
-        button:disabled {
-            background: #334155;
-            color: #64748b;
-            cursor: not-allowed;
-            box-shadow: none;
+        #loadingState {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
         }
 
         /* Spinner de Carregamento */
@@ -171,58 +203,62 @@
         <h1>Grupo Trindade</h1>
         <p class="subtitle">Material Litúrgico</p>
 
-        <div class="file-info-box" id="fileBox">
-            <i class="fa-solid fa-file-powerpoint" id="fileIcon"></i>
+        <div id="loadingState">
+            <div class="loader" id="btnLoader"></div>
             <p id="status">Procurando arquivos recentes...</p>
         </div>
 
-        <button id="downloadBtn" disabled>
-            <div class="loader" id="btnLoader"></div>
-            <span id="btnText">Conectando...</span>
-        </button>
+        <div id="fileListContainer" class="file-list" style="display: none;">
+            <!-- Os arquivos serão inseridos aqui pelo JavaScript -->
+        </div>
     </div>
 
     <script>
         async function loadFile() {
-            const btn = document.getElementById('downloadBtn');
+            const loadingState = document.getElementById('loadingState');
+            const fileListContainer = document.getElementById('fileListContainer');
             const status = document.getElementById('status');
-            const btnText = document.getElementById('btnText');
             const btnLoader = document.getElementById('btnLoader');
-            const fileBox = document.getElementById('fileBox');
-            const fileIcon = document.getElementById('fileIcon');
 
             try {
                 const res = await fetch('/api/get-slides');
                 if (!res.ok) throw new Error('Falha ao buscar arquivo');
 
-                const data = await res.json();
+                const data = await res.json(); // Array de arquivos
 
-                // Atualiza a Interface de Sucesso
-                btnLoader.style.display = 'none';
-                btnText.innerHTML = '<i class="fa-solid fa-download"></i> BAIXAR REPERTÓRIO';
-                btn.disabled = false;
+                // Esconde o loading
+                loadingState.style.display = 'none';
 
-                status.innerHTML = `<strong>Pronto para baixar:</strong><br>${data.name}`;
+                if (Array.isArray(data) && data.length > 0) {
+                    fileListContainer.style.display = 'flex';
+                    fileListContainer.innerHTML = ''; // Limpa a lista
 
-                // Mostra a caixinha com animação
-                fileBox.classList.add('visible');
-
-                // Muda o ícone se for PDF
-                if (data.name.toLowerCase().endsWith('.pdf')) {
-                    fileIcon.className = 'fa-solid fa-file-pdf';
+                    data.forEach(file => {
+                        const isPdf = file.name.toLowerCase().endsWith('.pdf');
+                        const iconClass = isPdf ? 'fa-solid fa-file-pdf' : 'fa-solid fa-file-powerpoint';
+                        
+                        // Cria o elemento da lista
+                        const itemDiv = document.createElement('div');
+                        itemDiv.className = 'file-item';
+                        itemDiv.innerHTML = `
+                            <div class="file-item-info" title="${file.name}">
+                                <i class="${iconClass}"></i>
+                                <span class="file-name">${file.name}</span>
+                            </div>
+                            <button class="download-btn" onclick="window.location.href='${file.downloadUrl}'" title="Baixar Arquivo">
+                                <i class="fa-solid fa-download"></i>
+                            </button>
+                        `;
+                        fileListContainer.appendChild(itemDiv);
+                    });
+                } else {
+                    throw new Error('Nenhum arquivo encontrado');
                 }
-
-                // Ação de Clique
-                btn.onclick = () => {
-                    window.location.href = data.downloadUrl;
-                };
 
             } catch (error) {
                 // Interface de Erro
                 btnLoader.style.display = 'none';
-                btnText.textContent = 'Indisponível no momento';
-                status.innerHTML = '<i class="fa-solid fa-circle-exclamation" style="color: #ff5252;"></i> Nenhuma apresentação encontrada para hoje.';
-                fileBox.classList.add('visible');
+                status.innerHTML = '<i class="fa-solid fa-circle-exclamation" style="color: #ff5252; font-size: 24px; display: block; margin-bottom: 10px;"></i> Nenhuma apresentação encontrada.';
                 console.error(error);
             }
         }

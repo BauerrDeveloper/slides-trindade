@@ -202,9 +202,7 @@
                 btnText.innerHTML = '<i class="fa-solid fa-download"></i> BAIXAR REPERTÓRIO';
                 btn.disabled = false;
 
-                // Limpa o nome do arquivo para exibição (remove a extensão se quiser, ou só formata)
-                let cleanName = data.name.replace(/_/g, ' '); // Troca underlines por espaços
-                status.innerHTML = `<strong>Pronto para baixar:</strong><br>${cleanName}`;
+                status.innerHTML = `<strong>Pronto para baixar:</strong><br>${data.name}`;
 
                 // Mostra a caixinha com animação
                 fileBox.classList.add('visible');

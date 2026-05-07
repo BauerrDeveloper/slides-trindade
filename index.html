@@ -82,7 +82,7 @@
             width: 100%;
             max-height: 350px;
             overflow-y: auto;
-            padding-right: 5px;
+            padding: 4px 5px 4px 4px; /* Adicionado padding para a animação não cortar a borda */
         }
 
         /* Scrollbar customizada */
@@ -235,9 +235,33 @@
                     fileListContainer.style.display = 'flex';
                     fileListContainer.innerHTML = ''; // Limpa a lista
 
+                    // Função para determinar o ícone baseado na extensão
+                    const getFileIconClass = (filename) => {
+                        const ext = filename.toLowerCase().split('.').pop();
+                        const icons = {
+                            'pdf': 'fa-solid fa-file-pdf',
+                            'ppt': 'fa-solid fa-file-powerpoint',
+                            'pptx': 'fa-solid fa-file-powerpoint',
+                            'doc': 'fa-solid fa-file-word',
+                            'docx': 'fa-solid fa-file-word',
+                            'mp3': 'fa-solid fa-file-audio',
+                            'wav': 'fa-solid fa-file-audio',
+                            'jpg': 'fa-solid fa-file-image',
+                            'jpeg': 'fa-solid fa-file-image',
+                            'png': 'fa-solid fa-file-image',
+                            'gif': 'fa-solid fa-file-image',
+                            'mp4': 'fa-solid fa-file-video',
+                            'xls': 'fa-solid fa-file-excel',
+                            'xlsx': 'fa-solid fa-file-excel',
+                            'zip': 'fa-solid fa-file-zipper',
+                            'rar': 'fa-solid fa-file-zipper',
+                            'txt': 'fa-solid fa-file-lines'
+                        };
+                        return icons[ext] || 'fa-solid fa-file'; // fa-file genérico caso não encontre
+                    };
+
                     data.forEach(file => {
-                        const isPdf = file.name.toLowerCase().endsWith('.pdf');
-                        const iconClass = isPdf ? 'fa-solid fa-file-pdf' : 'fa-solid fa-file-powerpoint';
+                        const iconClass = getFileIconClass(file.name);
                         
                         // Cria o elemento da lista
                         const itemDiv = document.createElement('div');
